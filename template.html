@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>godepView</title>
+</head>
+<body>
+<div id="main" style="width: 100%; height: 500px"></div>
+<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+<script type="text/javascript">
+
+    packageDate =
+    {
+        "categories": [{"name": ""}],
+        "nodes": [
+            {"id": 0, "category": 0, "name": "a", "label": "a", "symbolSize": 40, "ignore": false, "flag": true},
+            {"id": 1, "category": 1, "name": "b", "label": "b", "symbolSize": 40, "ignore": false, "flag": true}
+        ],
+        "links": [{"source": 0, "target": 1}]
+    };
+
+    require.config({
+        paths: {
+            echarts: 'http://echarts.baidu.com/build/dist'
+        }
+    });
+
+    require(["echarts", "echarts/chart/force"], function (ec) {
+        var myChart = ec.init(document.getElementById('main'), 'macarons');
+        var option = {
+            tooltip: {
+                show: false
+            },
+            series: [{
+                type: 'force',
+                name: "Force tree",
+                itemStyle: {
+                    normal: {
+                        label: {show: true},
+                        nodeStyle: {
+                            brushType: 'both',
+                            borderColor: 'rgba(255,215,0,0.4)',
+                            borderWidth: 1
+                        }
+                    }
+                },
+                categories: packageDate.categories,
+                nodes: packageDate.nodes,
+                links: packageDate.links,
+            }]
+        };
+        myChart.setOption(option);
+    });
+</script>
+
+</body>
+</html>
