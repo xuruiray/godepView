@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin/json"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 type resultSet struct {
@@ -34,33 +35,92 @@ type eLink struct {
 
 // TODO genResultSet 生成 echarts 需要的结构体格式
 // TODO 过滤非内部的依赖关系
+// TODO 过滤内部 vender 的依赖关系
 func genResultSet(packageInfoMap map[string]packageInfo) resultSet {
 
 	rs := resultSet{
-		[]Category{Category{}},
-		[]eNode{eNode{}},
-		[]eLink{eLink{}},
+		[]Category{},
+		[]eNode{},
+		[]eLink{},
 	}
-	jsonByte, _ := json.Marshal(rs)
-	fmt.Println(string(jsonByte))
+
+	idx := 0
+	nodeMap := map[string]int{}
+
+	// 添加主节点
+	for _, pi := range packageInfoMap {
+		if pi.ImportPath == LOCAL_PACKAGE_PATH {
+			continue
+		}
+		nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+"/")
+		rs.Nodes = append(rs.Nodes, eNode{
+			idx, idx, nodeName, nodeName, 40, false, true,
+		})
+		nodeMap[nodeName] = idx
+		idx++
+	}
+
+	// 添加节点关系
+	for _, pi := range packageInfoMap {
+		for _, dep := range pi.Imports {
+
+			if pi.ImportPath == LOCAL_PACKAGE_PATH {
+				continue
+			}
+			if !strings.HasPrefix(dep, LOCAL_PACKAGE_PATH) {
+				continue
+			}
+			if strings.HasPrefix(dep, LOCAL_PACKAGE_PATH+"/vendor") {
+				continue
+			}
+
+			depName := strings.TrimPrefix(dep, LOCAL_PACKAGE_PATH+"/")
+			nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+"/")
+			nodeID := nodeMap[nodeName]
+
+			if depID, ok := nodeMap[depName]; ok {
+				rs.Links = append(rs.Links, eLink{nodeID, depID})
+			} else {
+				rs.Nodes = append(rs.Nodes, eNode{
+					idx, idx, depName, depName, 30, false, true,
+				})
+				rs.Links = append(rs.Links, eLink{nodeID, idx})
+				nodeMap[depName] = idx
+				idx++
+			}
+		}
+	}
+
 	return rs
 }
 
 // loadTemplate 加载页面模板
-func loadTemplate() ([2]string, error) {
+func loadTemplate() ([2][]byte, error) {
 	f, err := os.Open(TEMPLATE_PATH)
 	if err != nil {
-		return [2]string{}, err
+		return [2][]byte{}, err
 	}
 	tByte, err := ioutil.ReadAll(f)
 	if err != nil {
-		return [2]string{}, err
+		return [2][]byte{}, err
 	}
-
-	return [2]string{string(tByte[:280]), string(tByte[635:])}, nil
+	return [2][]byte{tByte[:280], tByte[632:]}, nil
 }
 
 // TODO generateView 生成展示页面
-func generateView() {
+func generateView(rs resultSet) string {
+	jsonByte, _ := json.Marshal(rs)
 
+	viewFilePath := WORKSPACE + "/godepView.html"
+	f, err := os.OpenFile(viewFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Println("Failed to open the file", err.Error())
+		os.Exit(2)
+	}
+	defer f.Close()
+	f.Write(TEMPLATE[0])
+	f.Write(jsonByte)
+	f.Write(TEMPLATE[1])
+
+	return viewFilePath
 }

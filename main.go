@@ -13,7 +13,7 @@ import (
 
 var GOPATH string
 var WORKSPACE string
-var TEMPLATE [2]string // 没想到还可以这样限制数组长度。。
+var TEMPLATE [2][]byte // 没想到还可以这样限制数组长度。。
 var LOCAL_PACKAGE_PATH string
 var TEMPLATE_PATH string
 
@@ -23,13 +23,13 @@ func main() {
 	LOCAL_PACKAGE_PATH = argsFilter(os.Args)[1]
 
 	fileList := paramsFilter([]string{LOCAL_PACKAGE_PATH})
+	LOCAL_PACKAGE_PATH = getPackagePath(LOCAL_PACKAGE_PATH)
 
 	resultMap := loadData(fileList)
-	for _, v := range resultMap {
-		fmt.Println(v)
-	}
+	rs := genResultSet(resultMap)
+	response := generateView(rs)
 
-	LOCAL_PACKAGE_PATH = getPackagePath(LOCAL_PACKAGE_PATH)
+	fmt.Println(response)
 }
 
 type packageInfo struct {

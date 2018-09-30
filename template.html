@@ -40,10 +40,17 @@
                         nodeStyle: {
                             brushType: 'both',
                             borderColor: 'rgba(255,215,0,0.4)',
-                            borderWidth: 1
-                        }
+                            borderWidth: 1,
+                        },
                     }
                 },
+                gravity: 0.5,
+                linkSymbol: 'arrow',
+                useWorker: false,
+                minRadius : 15,
+                maxRadius : 25,
+                scaling: 1.1,
+                roam: 'move',
                 categories: packageDate.categories,
                 nodes: packageDate.nodes,
                 links: packageDate.links,
