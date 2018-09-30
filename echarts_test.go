@@ -21,10 +21,10 @@ func TestGenResultSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//if got := GenResultSet(tt.args.packageInfo); !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("GenResultSet() = %v, want %v", got, tt.want)
+			//if got := genResultSet(tt.args.packageInfo); !reflect.DeepEqual(got, tt.want) {
+			//	t.Errorf("genResultSet() = %v, want %v", got, tt.want)
 			//}
-			GenResultSet(tt.args.packageInfo)
+			genResultSet(tt.args.packageInfo)
 		})
 	}
 }

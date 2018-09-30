@@ -13,20 +13,23 @@ import (
 
 var GOPATH string
 var WORKSPACE string
-var TEMPLATE string
+var TEMPLATE [2]string // 没想到还可以这样限制数组长度。。
+var LOCAL_PACKAGE_PATH string
+var TEMPLATE_PATH string
 
+// 入参为包地址 ./ufs
 func main() {
-	fileList := make([]string, len(os.Args))
-	for idx, args := range os.Args {
-		fileList[idx] = args
-	}
-	fileList = fileList[1:]
-	fileList = paramsFilter(fileList)
+
+	LOCAL_PACKAGE_PATH = argsFilter(os.Args)[1]
+
+	fileList := paramsFilter([]string{LOCAL_PACKAGE_PATH})
 
 	resultMap := loadData(fileList)
 	for _, v := range resultMap {
 		fmt.Println(v)
 	}
+
+	LOCAL_PACKAGE_PATH = getPackagePath(LOCAL_PACKAGE_PATH)
 }
 
 type packageInfo struct {
@@ -53,11 +56,24 @@ func init() {
 	}
 	WORKSPACE = strings.Trim(out.String(), "\n")
 
+	TEMPLATE_PATH = GOPATH + "/src/github.com/xuruiray/godepView/template.html"
 	TEMPLATE, err = loadTemplate()
 	if err != nil {
 		log.Fatalf("load view template error: %v", err)
 		os.Exit(0)
 	}
+
+}
+
+// TODO 校验是否只有一个参数，若校验失败，程序退出，打印使用方法
+// TODO 目前没有能力检查其他错误的原因，所以忽略其他错误，只有参数错误会退出并显示错误信息
+func argsFilter(args []string) []string {
+	if len(args) != 2 {
+		fmt.Println("指令参数错误")
+		os.Exit(0)
+	}
+
+	return args
 }
 
 // loadData 加载所有 package 信息
@@ -98,14 +114,4 @@ func getPackageInfo(packagePath string) (*packageInfo, error) {
 		}
 	}
 	return &m, nil
-}
-
-// loadTemplate 加载页面模板
-func loadTemplate() (string, error) {
-	return "", nil
-}
-
-// generateView 生成展示页面
-func generateView() {
-
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin/json"
+	"io/ioutil"
+	"os"
 )
 
 type resultSet struct {
@@ -30,7 +32,10 @@ type eLink struct {
 	Target int `json:"target"`
 }
 
-func GenResultSet(packageInfo map[string]packageInfo) resultSet {
+// TODO genResultSet 生成 echarts 需要的结构体格式
+// TODO 过滤非内部的依赖关系
+func genResultSet(packageInfoMap map[string]packageInfo) resultSet {
+
 	rs := resultSet{
 		[]Category{Category{}},
 		[]eNode{eNode{}},
@@ -39,4 +44,23 @@ func GenResultSet(packageInfo map[string]packageInfo) resultSet {
 	jsonByte, _ := json.Marshal(rs)
 	fmt.Println(string(jsonByte))
 	return rs
+}
+
+// loadTemplate 加载页面模板
+func loadTemplate() ([2]string, error) {
+	f, err := os.Open(TEMPLATE_PATH)
+	if err != nil {
+		return [2]string{}, err
+	}
+	tByte, err := ioutil.ReadAll(f)
+	if err != nil {
+		return [2]string{}, err
+	}
+
+	return [2]string{string(tByte[:280]), string(tByte[635:])}, nil
+}
+
+// TODO generateView 生成展示页面
+func generateView() {
+
 }
