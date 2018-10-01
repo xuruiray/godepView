@@ -73,6 +73,7 @@ func argsFilter(args []string) []string {
 		os.Exit(0)
 	}
 
+	args[1] = strings.TrimSuffix(args[1], SPILT)
 	return args
 }
 

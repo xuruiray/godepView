@@ -74,7 +74,7 @@ func addChildDir(paths []string) []string {
 			f.Close()
 
 			for _, name := range names {
-				childPath = append(childPath, path+"/"+name)
+				childPath = append(childPath, path+SPILT+name)
 			}
 		}()
 	}

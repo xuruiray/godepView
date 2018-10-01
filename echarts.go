@@ -52,7 +52,7 @@ func genResultSet(packageInfoMap map[string]packageInfo) resultSet {
 		if pi.ImportPath == LOCAL_PACKAGE_PATH {
 			continue
 		}
-		nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+"/")
+		nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+SPILT)
 		rs.Nodes = append(rs.Nodes, eNode{
 			idx, idx, nodeName, nodeName, 40, false, true,
 		})
@@ -74,8 +74,8 @@ func genResultSet(packageInfoMap map[string]packageInfo) resultSet {
 				continue
 			}
 
-			depName := strings.TrimPrefix(dep, LOCAL_PACKAGE_PATH+"/")
-			nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+"/")
+			depName := strings.TrimPrefix(dep, LOCAL_PACKAGE_PATH+SPILT)
+			nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+SPILT)
 			nodeID := nodeMap[nodeName]
 
 			if depID, ok := nodeMap[depName]; ok {
