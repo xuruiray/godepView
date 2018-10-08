@@ -33,9 +33,7 @@ type eLink struct {
 	Target int `json:"target"`
 }
 
-// TODO genResultSet 生成 echarts 需要的结构体格式
-// TODO 过滤非内部的依赖关系
-// TODO 过滤内部 vender 的依赖关系
+// genResultSet 生成 echarts 需要的结构体格式
 func genResultSet(packageInfoMap map[string]packageInfo) resultSet {
 
 	rs := resultSet{
@@ -64,12 +62,13 @@ func genResultSet(packageInfoMap map[string]packageInfo) resultSet {
 	for _, pi := range packageInfoMap {
 		for _, dep := range pi.Imports {
 
+			// 过滤根
 			if pi.ImportPath == LOCAL_PACKAGE_PATH {
 				continue
-			}
+			} // 过滤 go 内部包依赖关系
 			if !strings.HasPrefix(dep, LOCAL_PACKAGE_PATH) {
 				continue
-			}
+			} // 过滤内部 vender 的依赖关系
 			if strings.HasPrefix(dep, LOCAL_PACKAGE_PATH+"/vendor") {
 				continue
 			}
@@ -107,7 +106,8 @@ func loadTemplate() ([2][]byte, error) {
 	return [2][]byte{tByte[:280], tByte[632:]}, nil
 }
 
-// TODO generateView 生成展示页面
+// TODO 展示页面未来写死在代码里，减少加载文件可能出现的异常与耗时
+// generateView 生成展示页面
 func generateView(rs resultSet) string {
 	jsonByte, _ := json.Marshal(rs)
 

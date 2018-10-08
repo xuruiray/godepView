@@ -66,6 +66,7 @@ func init() {
 }
 
 // TODO 校验是否只有一个参数，若校验失败，程序退出，打印使用方法
+// TODO 可以使用 -{arg} 的形式添加其他参数
 // TODO 目前没有能力检查其他错误的原因，所以忽略其他错误，只有参数错误会退出并显示错误信息
 func argsFilter(args []string) []string {
 	if len(args) != 2 {
