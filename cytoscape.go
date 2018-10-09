@@ -8,38 +8,31 @@ import (
 	"strings"
 )
 
-type eResultSet struct {
-	Categories []Category `json:"categories"`
-	Nodes      []eNode    `json:"nodes"`
-	Links      []eLink    `json:"links"`
+type cResultSet struct {
+	Nodes []data `json:"nodes"`
+	Links []data `json:"edges"`
 }
 
-type Category struct {
+type data struct {
+	Data interface{} `json:"data"`
+}
+
+type cNode struct {
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
-type eNode struct {
-	ID         int    `json:"id"`
-	Category   int    `json:"category"`
-	Name       string `json:"name"`
-	Label      string `json:"label"`
-	SymbolSize int    `json:"symbolSize"`
-	Ignore     bool   `json:"ignore"`
-	Flag       bool   `json:"flag"`
-}
-
-type eLink struct {
+type cLink struct {
 	Source int `json:"source"`
 	Target int `json:"target"`
 }
 
 // genEResultSet 生成 echarts 需要的结构体格式
-func genEResultSet(packageInfoMap map[string]packageInfo) eResultSet {
+func genCResultSet(packageInfoMap map[string]packageInfo) cResultSet {
 
-	rs := eResultSet{
-		[]Category{},
-		[]eNode{},
-		[]eLink{},
+	rs := cResultSet{
+		[]data{},
+		[]data{},
 	}
 
 	idx := 0
@@ -51,9 +44,9 @@ func genEResultSet(packageInfoMap map[string]packageInfo) eResultSet {
 			continue
 		}
 		nodeName := strings.TrimPrefix(pi.ImportPath, LOCAL_PACKAGE_PATH+SPILT)
-		rs.Nodes = append(rs.Nodes, eNode{
-			idx, idx, nodeName, nodeName, 40, false, true,
-		})
+		rs.Nodes = append(rs.Nodes, data{cNode{
+			idx, nodeName,
+		}})
 		nodeMap[nodeName] = idx
 		idx++
 	}
@@ -78,12 +71,12 @@ func genEResultSet(packageInfoMap map[string]packageInfo) eResultSet {
 			nodeID := nodeMap[nodeName]
 
 			if depID, ok := nodeMap[depName]; ok {
-				rs.Links = append(rs.Links, eLink{nodeID, depID})
+				rs.Links = append(rs.Links, data{cLink{nodeID, depID}})
 			} else {
-				rs.Nodes = append(rs.Nodes, eNode{
-					idx, idx, depName, depName, 30, false, true,
-				})
-				rs.Links = append(rs.Links, eLink{nodeID, idx})
+				rs.Nodes = append(rs.Nodes, data{cNode{
+					idx, depName,
+				}})
+				rs.Links = append(rs.Links, data{cLink{nodeID, idx}})
 				nodeMap[depName] = idx
 				idx++
 			}
@@ -94,7 +87,7 @@ func genEResultSet(packageInfoMap map[string]packageInfo) eResultSet {
 }
 
 // loadETemplate 加载页面模板
-func loadETemplate() ([2][]byte, error) {
+func loadCTemplate() ([2][]byte, error) {
 	f, err := os.Open(TEMPLATE_PATH)
 	if err != nil {
 		return [2][]byte{}, err
@@ -103,14 +96,13 @@ func loadETemplate() ([2][]byte, error) {
 	if err != nil {
 		return [2][]byte{}, err
 	}
-	return [2][]byte{tByte[:280], tByte[632:]}, nil
+	return [2][]byte{tByte[:666], tByte[874:]}, nil
 }
 
 // TODO 展示页面未来写死在代码里，减少加载文件可能出现的异常与耗时
 // generateEView 生成展示页面
-func generateEView(rs eResultSet) string {
+func generateCView(rs cResultSet) string {
 	jsonByte, _ := json.Marshal(rs)
-
 	viewFilePath := WORKSPACE + "/godepView.html"
 	f, err := os.OpenFile(viewFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
@@ -121,6 +113,5 @@ func generateEView(rs eResultSet) string {
 	f.Write(TEMPLATE[0])
 	f.Write(jsonByte)
 	f.Write(TEMPLATE[1])
-
 	return viewFilePath
 }

@@ -11,20 +11,20 @@ func TestGenResultSet(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want resultSet
+		want eResultSet
 	}{
 		{
 			"test01",
 			args{},
-			resultSet{},
+			eResultSet{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//if got := genResultSet(tt.args.packageInfo); !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("genResultSet() = %v, want %v", got, tt.want)
+			//if got := genEResultSet(tt.args.packageInfo); !reflect.DeepEqual(got, tt.want) {
+			//	t.Errorf("genEResultSet() = %v, want %v", got, tt.want)
 			//}
-			genResultSet(tt.args.packageInfo)
+			genEResultSet(tt.args.packageInfo)
 		})
 	}
 }

@@ -16,6 +16,7 @@ var WORKSPACE string
 var TEMPLATE [2][]byte // 没想到还可以这样限制数组长度。。
 var LOCAL_PACKAGE_PATH string
 var TEMPLATE_PATH string
+var C_TEMPLATE_PATH string
 
 // 入参为包地址 ./ufs
 func main() {
@@ -26,8 +27,8 @@ func main() {
 	LOCAL_PACKAGE_PATH = getPackagePath(LOCAL_PACKAGE_PATH)
 
 	resultMap := loadData(fileList)
-	rs := genResultSet(resultMap)
-	response := generateView(rs)
+	rs := genCResultSet(resultMap)
+	response := generateCView(rs)
 
 	fmt.Println(response)
 }
@@ -56,8 +57,8 @@ func init() {
 	}
 	WORKSPACE = strings.Trim(out.String(), "\n")
 
-	TEMPLATE_PATH = GOPATH + "/src/github.com/xuruiray/godepView/template.html"
-	TEMPLATE, err = loadTemplate()
+	TEMPLATE_PATH = GOPATH + "/src/github.com/xuruiray/godepView/cytoscape.html"
+	TEMPLATE, err = loadCTemplate()
 	if err != nil {
 		log.Fatalf("load view template error: %v", err)
 		os.Exit(0)
