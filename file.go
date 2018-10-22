@@ -3,6 +3,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/xuruiray/godepView/template"
 	"os"
 	"strings"
 	"sync"
@@ -12,8 +15,9 @@ const (
 	SPILT = "/"
 )
 
-// paramsFilter 过滤不合法路径，补充文件夹内子路径
-func paramsFilter(paths []string) (resultList []string) {
+// genPackageList 过滤不合法路径，补充文件夹内子路径
+func genPackageList(paths []string) (resultList []string) {
+
 	paths = addChildDir(paths)
 	paths = delFilePath(paths)
 
@@ -122,6 +126,47 @@ func getPackagePath(path string) string {
 	}
 
 	// 绝对路径转化为完整包名
-	path = strings.TrimPrefix(path, GOPATH+"/src/")
+	path = strings.TrimPrefix(path, GOPATH+SPILT+"src"+SPILT)
 	return path
+}
+
+// generateViewFile 生成展示页面
+func genFile(rs []byte, template []string) string {
+
+	pathArray := strings.Split(LOCAL_PACKAGE_PATH, SPILT)
+	fileName := pathArray[len(pathArray)-1]
+	viewFilePath := WORKSPACE + SPILT + fileName + ".html"
+
+	f, err := os.OpenFile(viewFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		fmt.Println("Failed to open the file", err.Error())
+		os.Exit(2)
+	}
+	defer f.Close()
+
+	f.Write([]byte(template[0]))
+	f.Write(rs)
+	f.Write([]byte(template[1]))
+
+	return viewFilePath
+}
+
+func genView(templateMode string, resultMap map[string]packageInfo) string {
+
+	var resultByte []byte
+	temp := template.GetTemplate(templateMode)
+
+	if len(resultMap) < 8 {
+		templateMode = template.CTemp
+	}
+
+	if templateMode == template.CTemp {
+		resultSet := genCResultSet(resultMap)
+		resultByte, _ = json.Marshal(resultSet)
+	} else if templateMode == template.ETemp {
+		resultSet := genCResultSet(resultMap)
+		resultByte, _ = json.Marshal(resultSet)
+	}
+
+	return genFile(resultByte, temp)
 }

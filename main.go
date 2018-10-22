@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/xuruiray/godepView/template"
 	"io"
 	"log"
 	"os"
@@ -11,24 +12,30 @@ import (
 	"strings"
 )
 
+// 全局默认环境变量
 var GOPATH string
 var WORKSPACE string
-var TEMPLATE [2][]byte // 没想到还可以这样限制数组长度。。
 var LOCAL_PACKAGE_PATH string
-var TEMPLATE_PATH string
-var C_TEMPLATE_PATH string
+var LOCAL_FILE_PATH string
+
+// 用户请求
+type request struct {
+	GoPath           string // -g
+	LocalPackagePath string // -p
+	TemplateMode     string // -c
+}
 
 // 入参为包地址 ./ufs
 func main() {
 
-	LOCAL_PACKAGE_PATH = argsFilter(os.Args)[1]
-
-	fileList := paramsFilter([]string{LOCAL_PACKAGE_PATH})
-	LOCAL_PACKAGE_PATH = getPackagePath(LOCAL_PACKAGE_PATH)
-
-	resultMap := loadData(fileList)
-	rs := genCResultSet(resultMap)
-	response := generateCView(rs)
+	// 参数解析
+	req := argsFilter(os.Args)
+	// 获取包内文件子包文件路径
+	fileList := genPackageList([]string{LOCAL_FILE_PATH})
+	// 根据文件路径获取包依赖信息
+	resultMap := loadPackageInfo(fileList)
+	// 生成 view 文件，返回文件路径
+	response := genView(req.TemplateMode, resultMap)
 
 	fmt.Println(response)
 }
@@ -44,9 +51,8 @@ type packageInfo struct {
 
 // 初始化 GOPATH 与当前路径
 func init() {
-
+	// 加载环境变量
 	GOPATH = os.Getenv("GOPATH")
-
 	cmd := exec.Command("pwd")
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -56,31 +62,33 @@ func init() {
 		os.Exit(0)
 	}
 	WORKSPACE = strings.Trim(out.String(), "\n")
-
-	TEMPLATE_PATH = GOPATH + "/src/github.com/xuruiray/godepView/cytoscape.html"
-	TEMPLATE, err = loadCTemplate()
-	if err != nil {
-		log.Fatalf("load view template error: %v", err)
-		os.Exit(0)
-	}
-
 }
 
-// TODO 校验是否只有一个参数，若校验失败，程序退出，打印使用方法
-// TODO 可以使用 -{arg} 的形式添加其他参数
-// TODO 目前没有能力检查其他错误的原因，所以忽略其他错误，只有参数错误会退出并显示错误信息
-func argsFilter(args []string) []string {
+// 处理请求参数
+func argsFilter(args []string) request {
+
+	// 加载 local 参数
 	if len(args) != 2 {
 		fmt.Println("指令参数错误")
 		os.Exit(0)
 	}
-
 	args[1] = strings.TrimSuffix(args[1], SPILT)
-	return args
+	LOCAL_FILE_PATH = args[1]
+	LOCAL_PACKAGE_PATH = getPackagePath(LOCAL_FILE_PATH)
+
+	// 加载默认参数
+	var req = request{
+		GoPath:           GOPATH,
+		LocalPackagePath: LOCAL_PACKAGE_PATH,
+		TemplateMode:     template.CTemp,
+	}
+
+	// TODO 根据其他参数修改默认参数
+	return req
 }
 
-// loadData 加载所有 package 信息
-func loadData(paths []string) map[string]packageInfo {
+// loadPackageInfo 加载所有 package 信息
+func loadPackageInfo(paths []string) map[string]packageInfo {
 
 	resultMap := make(map[string]packageInfo)
 

@@ -1,10 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin/json"
-	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -69,7 +65,7 @@ func genEResultSet(packageInfoMap map[string]packageInfo) eResultSet {
 			if !strings.HasPrefix(dep, LOCAL_PACKAGE_PATH) {
 				continue
 			} // 过滤内部 vender 的依赖关系
-			if strings.HasPrefix(dep, LOCAL_PACKAGE_PATH+"/vendor") {
+			if strings.HasPrefix(dep, LOCAL_PACKAGE_PATH+SPILT+"vendor") {
 				continue
 			}
 
@@ -91,36 +87,4 @@ func genEResultSet(packageInfoMap map[string]packageInfo) eResultSet {
 	}
 
 	return rs
-}
-
-// loadETemplate 加载页面模板
-func loadETemplate() ([2][]byte, error) {
-	f, err := os.Open(TEMPLATE_PATH)
-	if err != nil {
-		return [2][]byte{}, err
-	}
-	tByte, err := ioutil.ReadAll(f)
-	if err != nil {
-		return [2][]byte{}, err
-	}
-	return [2][]byte{tByte[:280], tByte[632:]}, nil
-}
-
-// TODO 展示页面未来写死在代码里，减少加载文件可能出现的异常与耗时
-// generateEView 生成展示页面
-func generateEView(rs eResultSet) string {
-	jsonByte, _ := json.Marshal(rs)
-
-	viewFilePath := WORKSPACE + "/godepView.html"
-	f, err := os.OpenFile(viewFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		fmt.Println("Failed to open the file", err.Error())
-		os.Exit(2)
-	}
-	defer f.Close()
-	f.Write(TEMPLATE[0])
-	f.Write(jsonByte)
-	f.Write(TEMPLATE[1])
-
-	return viewFilePath
 }

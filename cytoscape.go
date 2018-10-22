@@ -1,10 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin/json"
-	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -27,7 +23,7 @@ type cLink struct {
 	Target int `json:"target"`
 }
 
-// genEResultSet 生成 echarts 需要的结构体格式
+// genCResultSet 生成 echarts 需要的结构体格式
 func genCResultSet(packageInfoMap map[string]packageInfo) cResultSet {
 
 	rs := cResultSet{
@@ -62,7 +58,7 @@ func genCResultSet(packageInfoMap map[string]packageInfo) cResultSet {
 			if !strings.HasPrefix(dep, LOCAL_PACKAGE_PATH) {
 				continue
 			} // 过滤内部 vender 的依赖关系
-			if strings.HasPrefix(dep, LOCAL_PACKAGE_PATH+"/vendor") {
+			if strings.HasPrefix(dep, LOCAL_PACKAGE_PATH+SPILT+"vendor") {
 				continue
 			}
 
@@ -84,34 +80,4 @@ func genCResultSet(packageInfoMap map[string]packageInfo) cResultSet {
 	}
 
 	return rs
-}
-
-// loadETemplate 加载页面模板
-func loadCTemplate() ([2][]byte, error) {
-	f, err := os.Open(TEMPLATE_PATH)
-	if err != nil {
-		return [2][]byte{}, err
-	}
-	tByte, err := ioutil.ReadAll(f)
-	if err != nil {
-		return [2][]byte{}, err
-	}
-	return [2][]byte{tByte[:666], tByte[874:]}, nil
-}
-
-// TODO 展示页面未来写死在代码里，减少加载文件可能出现的异常与耗时
-// generateEView 生成展示页面
-func generateCView(rs cResultSet) string {
-	jsonByte, _ := json.Marshal(rs)
-	viewFilePath := WORKSPACE + "/godepView.html"
-	f, err := os.OpenFile(viewFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		fmt.Println("Failed to open the file", err.Error())
-		os.Exit(2)
-	}
-	defer f.Close()
-	f.Write(TEMPLATE[0])
-	f.Write(jsonByte)
-	f.Write(TEMPLATE[1])
-	return viewFilePath
 }
